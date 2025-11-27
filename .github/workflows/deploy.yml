@@ -2,7 +2,7 @@ name: Deploy Shortener Lambda
 
 on:
   push:
-    branches: ["main"]
+    branches: ["Code"]
 
 jobs:
   deploy:
