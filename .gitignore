@@ -1,0 +1,66 @@
+# ===========================
+# Node / TypeScript
+# ===========================
+
+node_modules/
+dist/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# TS build cache
+*.tsbuildinfo
+
+# ===========================
+# AWS Lambda Bundles
+# ===========================
+
+bundle.zip
+temp_bundle/
+
+# ===========================
+# Environment Variables
+# ===========================
+
+.env
+.env.local
+.env.*.local
+
+# ===========================
+# GitHub Actions
+# ===========================
+
+# (Nothing special here unless you generate artifacts)
+*.zip
+
+# ===========================
+# Terraform
+# ===========================
+
+terraform/.terraform/
+terraform/.terraform.lock.hcl
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/crash.log
+terraform/*.tfvars
+terraform/*.tfvars.json
+
+# Sensitive auto-generated
+terraform/.terraform.tfstate.lock.info
+
+# ===========================
+# VSCode
+# ===========================
+
+.vscode/
+*.code-workspace
+
+# ===========================
+# OS Files
+# ===========================
+
+.DS_Store
+Thumbs.db
+
