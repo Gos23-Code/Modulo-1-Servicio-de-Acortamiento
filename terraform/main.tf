@@ -100,10 +100,20 @@ resource "aws_lambda_function" "shortener" {
   ]
 }
 
-# API Gateway
+# API Gateway con configuración CORS
 resource "aws_apigatewayv2_api" "http_api" {
   name          = "shortener-api"
   protocol_type = "HTTP"
+  
+  # Configuración CORS para HTTP API
+  cors_configuration {
+    allow_origins = ["*"]  # Cambia a dominios específicos si es necesario: ["https://tudominio.com"]
+    allow_methods = ["POST", "GET", "OPTIONS"]
+    allow_headers = ["*"]
+    expose_headers = ["*"]
+    max_age = 300
+    allow_credentials = false
+  }
 }
 
 resource "aws_apigatewayv2_integration" "lambda_integration" {
@@ -120,22 +130,7 @@ resource "aws_apigatewayv2_route" "shorten_route" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
 
-# Configuración CORS explícita
-resource "aws_apigatewayv2_cors_configuration" "api_cors" {
-  api_id          = aws_apigatewayv2_api.http_api.id
-  allow_headers   = ["*"]
-  allow_methods   = ["POST", "GET", "OPTIONS"]
-  allow_origins   = ["*"]  # O especifica dominios específicos: ["https://tudominio.com"]
-  expose_headers  = ["*"]
-  max_age         = 300
-  
-  # Especifica para qué rutas aplica CORS
-  depends_on = [
-    aws_apigatewayv2_route.shorten_route
-  ]
-}
-
-# Opcional: Ruta OPTIONS mejorada (puedes eliminar la anterior)
+# Ruta OPTIONS para CORS preflight
 resource "aws_apigatewayv2_route" "options_route" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "OPTIONS /{proxy+}"
@@ -150,10 +145,9 @@ resource "aws_lambda_permission" "lambda_permission" {
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
 }
 
-
 resource "aws_apigatewayv2_stage" "production" {
   api_id      = aws_apigatewayv2_api.http_api.id
-  name        = "production"  # ⭐ Nombre explícito en lugar de $default
+  name        = "production"
   auto_deploy = true
 
   access_log_settings {
@@ -165,7 +159,6 @@ resource "aws_apigatewayv2_stage" "production" {
 resource "aws_cloudwatch_log_group" "api_logs" {
   name = "/aws/apigateway/shortener-api"
 }
-
 
 output "invoke_url" {
   value = "${aws_apigatewayv2_api.http_api.api_endpoint}/production"
