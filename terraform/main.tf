@@ -134,9 +134,10 @@ resource "aws_lambda_permission" "lambda_permission" {
   source_arn    = "${aws_apigatewayv2_api.http_api.execution_arn}/*/*"
 }
 
-resource "aws_apigatewayv2_stage" "default" {
+
+resource "aws_apigatewayv2_stage" "production" {
   api_id      = aws_apigatewayv2_api.http_api.id
-  name        = "$default"
+  name        = "production"  # ⭐ Nombre explícito en lugar de $default
   auto_deploy = true
 
   access_log_settings {
@@ -149,10 +150,23 @@ resource "aws_cloudwatch_log_group" "api_logs" {
   name = "/aws/apigateway/shortener-api"
 }
 
+
 output "invoke_url" {
+  value = "${aws_apigatewayv2_api.http_api.api_endpoint}/production"
+}
+
+output "api_gateway_url" {
   value = aws_apigatewayv2_api.http_api.api_endpoint
+}
+
+output "stage_name" {
+  value = aws_apigatewayv2_stage.production.name
 }
 
 output "dynamodb_table_name" {
   value = aws_dynamodb_table.shortener_table.name
+}
+
+output "full_invoke_url" {
+  value = "${aws_apigatewayv2_api.http_api.api_endpoint}/production/shorten"
 }
