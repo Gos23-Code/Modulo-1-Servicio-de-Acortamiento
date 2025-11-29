@@ -100,22 +100,6 @@ resource "aws_lambda_function" "shortener" {
   ]
 }
 
-# API Gateway con configuración CORS
-resource "aws_apigatewayv2_api" "http_api" {
-  name          = "shortener-api"
-  protocol_type = "HTTP"
-  
-  # Configuración CORS para HTTP API
-  cors_configuration {
-    allow_origins = ["*"]  # Cambia a dominios específicos si es necesario: ["https://tudominio.com"]
-    allow_methods = ["POST", "GET", "OPTIONS"]
-    allow_headers = ["*"]
-    expose_headers = ["*"]
-    max_age = 300
-    allow_credentials = false
-  }
-}
-
 resource "aws_apigatewayv2_integration" "lambda_integration" {
   api_id             = aws_apigatewayv2_api.http_api.id
   integration_type   = "AWS_PROXY"
