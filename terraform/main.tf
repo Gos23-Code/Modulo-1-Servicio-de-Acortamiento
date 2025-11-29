@@ -6,6 +6,7 @@ terraform {
     }
   }
 }
+
 provider "aws" {
   region = "us-east-1"
 }
@@ -79,11 +80,9 @@ resource "aws_iam_role_policy" "dynamodb_access" {
 # Lambda Function
 resource "aws_lambda_function" "shortener" {
   function_name = "shortener-lambda"
-
-  runtime = "nodejs20.x"
-  handler = "handler.handler"
-
-  role = aws_iam_role.lambda_role.arn
+  runtime       = "nodejs20.x"
+  handler       = "handler.handler"
+  role          = aws_iam_role.lambda_role.arn
 
   filename         = "../bundle.zip"
   source_code_hash = filebase64sha256("../bundle.zip")
@@ -100,11 +99,18 @@ resource "aws_lambda_function" "shortener" {
   ]
 }
 
+# API Gateway SIN configuración CORS automática
+resource "aws_apigatewayv2_api" "http_api" {
+  name          = "shortener-api"
+  protocol_type = "HTTP"
+  # SIN cors_configuration - control manual desde Lambda
+}
+
 resource "aws_apigatewayv2_integration" "lambda_integration" {
-  api_id             = aws_apigatewayv2_api.http_api.id
-  integration_type   = "AWS_PROXY"
-  integration_method = "POST"
-  integration_uri    = aws_lambda_function.shortener.invoke_arn
+  api_id                 = aws_apigatewayv2_api.http_api.id
+  integration_type       = "AWS_PROXY"
+  integration_method     = "POST"
+  integration_uri        = aws_lambda_function.shortener.invoke_arn
   payload_format_version = "2.0"
 }
 
@@ -114,8 +120,15 @@ resource "aws_apigatewayv2_route" "shorten_route" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
 
-# Ruta OPTIONS para CORS preflight
+# Ruta OPTIONS para manejar preflight CORS
 resource "aws_apigatewayv2_route" "options_route" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "OPTIONS /shorten"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+}
+
+# Ruta OPTIONS genérica para cualquier ruta
+resource "aws_apigatewayv2_route" "options_proxy" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "OPTIONS /{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
