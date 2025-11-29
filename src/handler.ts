@@ -34,7 +34,7 @@ exports.handler = async (event: any) => {
       return {
         statusCode: 400,
         headers: {
-           headers: corsHeaders,
+          ...corsHeaders,
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ error: "url is required" })
@@ -77,7 +77,7 @@ exports.handler = async (event: any) => {
     return {
       statusCode: 200,
       headers: {
-         headers: corsHeaders,
+        ...corsHeaders,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
@@ -91,7 +91,7 @@ exports.handler = async (event: any) => {
     return {
       statusCode: 500,
       headers: {
-         headers: corsHeaders,
+        ...corsHeaders,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({ 
