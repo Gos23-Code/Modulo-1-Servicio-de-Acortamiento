@@ -120,9 +120,25 @@ resource "aws_apigatewayv2_route" "shorten_route" {
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
 
+# Configuración CORS explícita
+resource "aws_apigatewayv2_cors_configuration" "api_cors" {
+  api_id          = aws_apigatewayv2_api.http_api.id
+  allow_headers   = ["*"]
+  allow_methods   = ["POST", "GET", "OPTIONS"]
+  allow_origins   = ["*"]  # O especifica dominios específicos: ["https://tudominio.com"]
+  expose_headers  = ["*"]
+  max_age         = 300
+  
+  # Especifica para qué rutas aplica CORS
+  depends_on = [
+    aws_apigatewayv2_route.shorten_route
+  ]
+}
+
+# Opcional: Ruta OPTIONS mejorada (puedes eliminar la anterior)
 resource "aws_apigatewayv2_route" "options_route" {
   api_id    = aws_apigatewayv2_api.http_api.id
-  route_key = "OPTIONS /shorten"
+  route_key = "OPTIONS /{proxy+}"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
 
