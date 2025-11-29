@@ -109,6 +109,7 @@ resource "aws_apigatewayv2_api" "http_api" {
 resource "aws_apigatewayv2_integration" "lambda_integration" {
   api_id             = aws_apigatewayv2_api.http_api.id
   integration_type   = "AWS_PROXY"
+  integration_method = "POST"
   integration_uri    = aws_lambda_function.shortener.invoke_arn
   payload_format_version = "2.0"
 }
@@ -116,6 +117,12 @@ resource "aws_apigatewayv2_integration" "lambda_integration" {
 resource "aws_apigatewayv2_route" "shorten_route" {
   api_id    = aws_apigatewayv2_api.http_api.id
   route_key = "POST /shorten"
+  target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
+}
+
+resource "aws_apigatewayv2_route" "options_route" {
+  api_id    = aws_apigatewayv2_api.http_api.id
+  route_key = "OPTIONS /shorten"
   target    = "integrations/${aws_apigatewayv2_integration.lambda_integration.id}"
 }
 
@@ -148,19 +155,4 @@ output "invoke_url" {
 
 output "dynamodb_table_name" {
   value = aws_dynamodb_table.shortener_table.name
-}
-
-resource "aws_api_gateway_integration_response" "shorten_options_integration_response" {
-  rest_api_id = aws_api_gateway_rest_api.shortener_api.id
-  resource_id = aws_api_gateway_resource.shorten_resource.id
-  http_method = aws_api_gateway_method.shorten_options.http_method
-  status_code = aws_api_gateway_method_response.shorten_options_200.status_code
-
-  response_parameters = {
-    "method.response.header.Access-Control-Allow-Headers" = "'Content-Type,X-Amz-Date,Authorization,X-Api-Key,X-Amz-Security-Token'"
-    "method.response.header.Access-Control-Allow-Methods" = "'GET,POST,PUT,DELETE,OPTIONS'"
-    "method.response.header.Access-Control-Allow-Origin"  = "'*'"
-  }
-
-  depends_on = [aws_api_gateway_integration.shorten_options_integration]
 }
